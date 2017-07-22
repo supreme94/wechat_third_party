@@ -1,6 +1,7 @@
 package com.github.supreme94.wechat.core.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 import lombok.Data;
 
@@ -10,6 +11,7 @@ import lombok.Data;
  */
 @ConfigurationProperties(prefix = "wechat.third")
 @Data
+@Component
 public class WechatProperties {
     /**
      * 设置微信第三方平台的appid
