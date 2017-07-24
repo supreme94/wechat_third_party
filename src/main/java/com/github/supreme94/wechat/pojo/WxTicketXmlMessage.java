@@ -27,7 +27,7 @@ import lombok.Data;
  */
 @XStreamAlias("xml")
 @Data
-public class WxMpXmlMessage implements Serializable {
+public class WxTicketXmlMessage implements Serializable {
 
 	private static final long serialVersionUID = 4441807402955450915L;
 
@@ -47,14 +47,13 @@ public class WxMpXmlMessage implements Serializable {
 	private String componentVerifyTicket;
 
 
-	public static WxMpXmlMessage fromXml(String xml) {
-		System.out.println(xml);
-		WxMpXmlMessage wxMpXmlMessage = XStreamTransformer.fromXml(WxMpXmlMessage.class, xml);
+	public static WxTicketXmlMessage fromXml(String xml) {
+		WxTicketXmlMessage wxMpXmlMessage = XStreamTransformer.fromXml(WxTicketXmlMessage.class, xml);
 		return wxMpXmlMessage;
 	}
 
-	public static WxMpXmlMessage fromXml(InputStream is) {
-		return XStreamTransformer.fromXml(WxMpXmlMessage.class, is);
+	public static WxTicketXmlMessage fromXml(InputStream is) {
+		return XStreamTransformer.fromXml(WxTicketXmlMessage.class, is);
 	}
 
 	/**
@@ -66,7 +65,7 @@ public class WxMpXmlMessage implements Serializable {
 	 * @param nonce             随机串
 	 * @param msgSignature      签名串
 	 */
-	public static WxMpXmlMessage fromEncryptedXml(String encryptedXml,
+	public static WxTicketXmlMessage fromEncryptedXml(String encryptedXml,
 			WechatProperties wechatProperties, String timestamp, String nonce,
 			String msgSignature) {
 		WxMpCryptUtil cryptUtil = new WxMpCryptUtil(wechatProperties);
@@ -75,7 +74,7 @@ public class WxMpXmlMessage implements Serializable {
 		return fromXml(plainText);
 	}
 
-	public static WxMpXmlMessage fromEncryptedXml(InputStream is,
+	public static WxTicketXmlMessage fromEncryptedXml(InputStream is,
 			WechatProperties wechatProperties, String timestamp, String nonce,
 			String msgSignature) {
 		try {

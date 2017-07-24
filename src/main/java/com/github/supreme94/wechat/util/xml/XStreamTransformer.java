@@ -1,6 +1,6 @@
 package com.github.supreme94.wechat.util.xml;
 
-import com.github.supreme94.wechat.pojo.WxMpXmlMessage;
+import com.github.supreme94.wechat.pojo.WxTicketXmlMessage;
 import com.thoughtworks.xstream.XStream;
 
 import java.io.InputStream;
@@ -10,7 +10,7 @@ public class XStreamTransformer {
   private static final Map<Class<?>, XStream> CLASS_2_XSTREAM_INSTANCE = new HashMap<>();
 
   static {
-    registerClass(WxMpXmlMessage.class);
+    registerClass(WxTicketXmlMessage.class);
   }
 
   /**
@@ -19,7 +19,6 @@ public class XStreamTransformer {
   @SuppressWarnings("unchecked")
   public static <T> T fromXml(Class<T> clazz, String xml) {
     T object = (T) CLASS_2_XSTREAM_INSTANCE.get(clazz).fromXML(xml);
-    System.out.println(object);
     return object;
   }
 
@@ -54,10 +53,11 @@ public class XStreamTransformer {
   private static void registerClass(Class<?> clz) {
     XStream xstream = XStreamInitializer.getInstance();
     xstream.processAnnotations(clz);
+    xstream.setClassLoader(clz.getClassLoader());
     xstream.processAnnotations(getInnerClasses(clz));
-    if (clz.equals(WxMpXmlMessage.class)) {
+    if (clz.equals(WxTicketXmlMessage.class)) {
       // 操蛋的微信，模板消息推送成功的消息是MsgID，其他消息推送过来是MsgId
-      xstream.aliasField("MsgID", WxMpXmlMessage.class, "msgId");
+      xstream.aliasField("MsgID", WxTicketXmlMessage.class, "msgId");
     }
 
     register(clz, xstream);
