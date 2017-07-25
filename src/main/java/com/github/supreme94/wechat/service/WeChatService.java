@@ -33,7 +33,6 @@ public class WeChatService {
 	
 	public WxComponentAccessToken getComponentToken() {
 		WxComponentAccessToken wxComponentAccessToken = null;
-		System.out.println("component_access_token " + redisTemplate.opsForValue().get("component_access_token"));
 		if(null != redisTemplate.opsForValue().get("component_access_token")) {
 			wxComponentAccessToken = new WxComponentAccessToken(redisTemplate.opsForValue().get("component_access_token").toString(),redisTemplate.getExpire("component_access_token",TimeUnit.SECONDS));
 		}else {
@@ -53,7 +52,7 @@ public class WeChatService {
 	public String getpreAuthCode() {
 		Map<String, String> params = new HashMap<>();
 		params.put("component_appid", wechatProperties.getAppId());
-		String cpmponent_access_token = redisTemplate.opsForValue().get("component_access_token");
+		String cpmponent_access_token = this.getComponentToken().getComponentAccessToken();
 		String result = HttpClient.postJsonRequest(JsonUtil.objectToString(params), GET_PRE_AUTH_CODE_URL,cpmponent_access_token).getBody();
 		JsonNode node = JsonUtil.stringToNode(result);
 		redisTemplate.opsForValue().set("pre_auth_code", node.get("pre_auth_code").asText(), node.get("expires_in").asInt(),TimeUnit.SECONDS);
@@ -64,14 +63,13 @@ public class WeChatService {
 		Map<String, String> params = new HashMap<>();
 		params.put("component_appid", wechatProperties.getAppId());
 		params.put("authorization_code", authorization_code);
-		String cpmponent_access_token = redisTemplate.opsForValue().get("component_access_token");
+		String cpmponent_access_token = this.getComponentToken().getComponentAccessToken();
 		String result = HttpClient.postJsonRequest(JsonUtil.objectToString(params), GET_AUTHORIZER_TOKEN_URL,cpmponent_access_token).getBody();
-		System.out.println(result);
 		JsonNode node = JsonUtil.stringToNode(result);
-		System.out.println("node " + node);
 		redisTemplate.opsForValue().set("authorizer_access_token", node.get("authorization_info").get("authorizer_access_token").asText(), node.get("authorization_info").get("expires_in").asInt(),TimeUnit.SECONDS);
 		redisTemplate.opsForValue().set("authorizer_refresh_token", node.get("authorization_info").get("authorizer_refresh_token").asText(), node.get("authorization_info").get("expires_in").asInt(),TimeUnit.SECONDS);
 		redisTemplate.opsForValue().set("authorizer_appid", node.get("authorization_info").get("authorizer_appid").asText(), node.get("authorization_info").get("expires_in").asInt(),TimeUnit.SECONDS);
 		return node.get("authorization_info").get("authorizer_access_token").asText();
 	}
+	
 }

@@ -1,19 +1,25 @@
 package com.github.supreme94.wechat.util;
 
+import java.nio.charset.Charset;
+
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 public class HttpClient {
-
+  
+  static StringHttpMessageConverter m = new StringHttpMessageConverter(Charset.forName("UTF-8")); //解决请求返回的中文乱码问题 
+  static RestTemplate restTemplate = new RestTemplateBuilder().additionalMessageConverters(m).build(); 
+	
   public static ResponseEntity<String> getRequest(HttpHeaders headers, String url) {
-    RestTemplate restTemplate = new RestTemplate();
     HttpEntity<String> httpEntity = new HttpEntity<String>("", headers);
     ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
     return response;
@@ -26,7 +32,6 @@ public class HttpClient {
   }
 
   public static ResponseEntity<String> postJsonRequest(String jsonString, String requestUrl, Object... uriParams) {
-    RestTemplate restTemplate = new RestTemplate();
     HttpHeaders headers = new HttpHeaders();
     try {
       headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -41,7 +46,6 @@ public class HttpClient {
 
   public static ResponseEntity<Object> sendRequest(MediaType mediaType, MultiValueMap<String, String> paramMap,
       String requestMethod, String requestUrl, Object... uriParams) {
-    RestTemplate restTemplate = new RestTemplate();
     ResponseEntity<Object> response;
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
