@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -126,9 +124,7 @@ public class ComponentEventService {
 		
 	}
 	
-	@Transactional
 	private void unauthorized(WxTicketXmlMessage wxTicketXmlMessage) {
-		System.out.println("***unauthorized***");
 		authorizerInfoRepository.deleteByauthorizerAppid(wxTicketXmlMessage.getAuthorizerAppid());
 	}
 
