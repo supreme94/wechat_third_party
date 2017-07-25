@@ -17,10 +17,7 @@ import lombok.Data;
 
 /**
  * <pre>
- * 微信推送过来的消息，xml格式
- * 部分未注释的字段的解释请查阅相关微信开发文档：
- * <a href="http://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140453&token=&lang=zh_CN">接收普通消息</a>
- * <a href="http://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140454&token=&lang=zh_CN">接收事件推送</a>
+ * 微信第三方平台推送过来的授权事件，xml格式
  * </pre>
  *
  * @author chanjarster
@@ -45,9 +42,21 @@ public class WxTicketXmlMessage implements Serializable {
 	@XStreamAlias("ComponentVerifyTicket")
 	@XStreamConverter(value = XStreamCDataConverter.class)
 	private String componentVerifyTicket;
+	
+	@XStreamAlias("AuthorizerAppid")
+	@XStreamConverter(value = XStreamCDataConverter.class)
+	private String authorizerAppid;
+	
+	@XStreamAlias("AuthorizationCode")
+	@XStreamConverter(value = XStreamCDataConverter.class)
+	private String authorizationCode;
+	
+	@XStreamAlias("AuthorizationCodeExpiredTime")
+	private Long authorizationCodeExpiredTime;
 
 
 	public static WxTicketXmlMessage fromXml(String xml) {
+		System.out.println(xml);
 		WxTicketXmlMessage wxMpXmlMessage = XStreamTransformer.fromXml(WxTicketXmlMessage.class, xml);
 		return wxMpXmlMessage;
 	}
