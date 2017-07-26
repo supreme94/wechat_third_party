@@ -26,3 +26,4 @@ nbdist/
 /.mvn
 /mvnw
 #/src/main/resources/application.yml
+/src/main/java/com/.DS_Store
