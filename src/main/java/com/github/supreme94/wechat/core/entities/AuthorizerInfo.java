@@ -79,7 +79,7 @@ public class AuthorizerInfo {
 	private BusinessInfo businessInfo;
 	
 	@OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name="authorizerInfoId")
+    @JoinColumn(name="authorizerInfoId",insertable = true, updatable = true)
 	private Set<FuncInfo> funcInfo;
 	
 }
