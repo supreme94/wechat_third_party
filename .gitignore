@@ -25,4 +25,4 @@ nbdist/
 /mvnw.cmd
 /.mvn
 /mvnw
-/src/main/resources/application.yml
+#/src/main/resources/application.yml

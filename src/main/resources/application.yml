@@ -1,0 +1,39 @@
+logging:
+  level:
+    org.springframework.web: DEBUG
+    com.github.supreme94.wechat: DEBUG
+
+spring:
+  redis:
+    host: 10.10.1.101
+    port: 6379
+    database: 0
+    pool:
+      max-idle: 8
+      min-idle: 0
+      max-active: 8
+      max-wait: -1
+  datasource: 
+    username: ucbyun_das
+    password: swk2016@GZ
+    url: jdbc:mysql://10.10.1.107:3306/wechat_third_party?useUnicode=true&characterEncoding=UTF-8
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    hikari: 
+      connection-timeout: 10000
+      pool-name: wechat_third_party
+      minimum-idle: 1
+      maximum-pool-size: 9
+      connection-test-query: SELECT 1
+  jpa: 
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+
+wechat:
+  third:
+    appId: wx2f371f5db84ff0bd
+    secret: 078e825d2a2b487064663b685b9821c7
+    token: 943f2ea630977da2b8
+    aesKey: JD99yPxepslcsLpneVET1D55PQUvmVpBhSBJ24u3oVL

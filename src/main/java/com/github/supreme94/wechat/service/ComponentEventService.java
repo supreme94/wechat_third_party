@@ -17,11 +17,16 @@ import com.github.supreme94.wechat.core.entities.AuthorizerInfo;
 import com.github.supreme94.wechat.core.entities.BusinessInfo;
 import com.github.supreme94.wechat.core.entities.FuncInfo;
 import com.github.supreme94.wechat.core.repository.AuthorizerInfoRepository;
+import com.github.supreme94.wechat.core.repository.FuncInfoRepository;
 import com.github.supreme94.wechat.pojo.WxTicketXmlMessage;
 import com.github.supreme94.wechat.util.HttpClient;
 import com.github.supreme94.wechat.util.JsonUtil;
 
-
+/**
+ * 用于处理微信第三方平台推送到"授权事件接收URL"的component_verify_ticket协议，取消授权通知，授权成功通知，授权更新通知的授权事件
+ * @author liangpeng
+ *
+ */
 @Service
 public class ComponentEventService {
 
@@ -47,6 +52,9 @@ public class ComponentEventService {
 	
 	@Autowired
 	private AuthorizerInfoRepository authorizerInfoRepository;
+	
+	@Autowired
+	private FuncInfoRepository funcInfoRepository;
 
 	public void handle(WxTicketXmlMessage wxTicketXmlMessage) {
 		switch (wxTicketXmlMessage.getInfoType()) {
@@ -61,7 +69,7 @@ public class ComponentEventService {
 				authorized(wxTicketXmlMessage);
 				break;
 			case UPDATEAUTHORIZED:
-				updateauthorized();
+				updateauthorized(wxTicketXmlMessage);
 				break;
 	
 			default:
@@ -69,17 +77,40 @@ public class ComponentEventService {
 		}
 	}
 
-	private void updateauthorized() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void authorized(WxTicketXmlMessage wxTicketXmlMessage) {
-		System.out.println(wechatProperties.getAppId());
+	private void updateauthorized(WxTicketXmlMessage wxTicketXmlMessage) {
 		Map<String, String> params = new HashMap<>();
 		params.put("component_appid", wechatProperties.getAppId());
 		params.put("authorizer_appid", wxTicketXmlMessage.getAuthorizerAppid());
-		String cpmponent_access_token = this.weChatService.getComponentToken().getComponentAccessToken();
+		String cpmponent_access_token = this.weChatService.getComponentAccessToken();
+		String result = HttpClient.postJsonRequest(JsonUtil.objectToString(params), GET_AUTHORIZER_INFO_URL,cpmponent_access_token).getBody();
+		System.out.println(result);
+		JsonNode node = JsonUtil.stringToNode(result);
+		AuthorizerInfo authorizationInfo = authorizerInfoRepository.findOneByauthorizerAppid(wxTicketXmlMessage.getAuthorizerAppid());
+		if(!node.hasNonNull("errcode")) {
+			JsonNode authorization_info = node.get("authorization_info");
+			
+			//先删除授权方所拥有的权限列表
+			funcInfoRepository.deleteInBatch(authorizationInfo.getFuncInfo());
+			
+			Set<FuncInfo> funcInfos = new HashSet<>();
+			if(authorization_info.get("func_info").isArray()) {
+				for(int i=0;i<authorization_info.get("func_info").size();i++) {
+					JsonNode temp = authorization_info.get("func_info").get(i);
+					FuncInfo funcInfo = new FuncInfo();
+					funcInfo.setFuncId(temp.get("funcscope_category").get("id").asInt());
+					funcInfos.add(funcInfo);
+				}
+			}
+			authorizationInfo.setFuncInfo(funcInfos);
+			authorizerInfoRepository.save(authorizationInfo);
+		}
+	}
+
+	private void authorized(WxTicketXmlMessage wxTicketXmlMessage) {
+		Map<String, String> params = new HashMap<>();
+		params.put("component_appid", wechatProperties.getAppId());
+		params.put("authorizer_appid", wxTicketXmlMessage.getAuthorizerAppid());
+		String cpmponent_access_token = this.weChatService.getComponentAccessToken();
 		String result = HttpClient.postJsonRequest(JsonUtil.objectToString(params), GET_AUTHORIZER_INFO_URL,cpmponent_access_token).getBody();
 		System.out.println(result);
 		JsonNode node = JsonUtil.stringToNode(result);

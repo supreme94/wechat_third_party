@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.github.supreme94.wechat.core.config.WechatProperties;
 import com.github.supreme94.wechat.core.entities.AuthorizerInfo;
 import com.github.supreme94.wechat.core.repository.AuthorizerInfoRepository;
-import com.github.supreme94.wechat.pojo.WxComponentAccessToken;
 import com.github.supreme94.wechat.pojo.WxTicketXmlMessage;
 import com.github.supreme94.wechat.service.ComponentEventService;
 import com.github.supreme94.wechat.service.ValidatorService;
@@ -64,8 +63,8 @@ public class WechatController {
 	
 	@ResponseBody
 	@GetMapping("/component_access_token")
-	public WxComponentAccessToken getComponentToken() {
-		return wechatService.getComponentToken();
+	public String getComponentToken() {
+		return wechatService.getComponentAccessToken();
 	}
 	
 //	@ResponseBody
@@ -89,7 +88,7 @@ public class WechatController {
 	@GetMapping("/")
 	public String authCodeChangeToken(@RequestParam("auth_code")String auth_code,
 									  @RequestParam("expires_in")Integer expires_in) {
-		wechatService.getAutuorizerToken(auth_code);
+		//wechatService.getAutuorizerToken(auth_code);
 		return "redirect:/success.html";
 	}
 }
