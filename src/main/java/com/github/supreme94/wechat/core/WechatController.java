@@ -88,7 +88,7 @@ public class WechatController {
 	@GetMapping("/")
 	public String authCodeChangeToken(@RequestParam("auth_code")String auth_code,
 									  @RequestParam("expires_in")Integer expires_in) {
-		//wechatService.getAutuorizerToken(auth_code);
+		wechatService.codeExChangeAutuorizerToken(auth_code);
 		return "redirect:/success.html";
 	}
 }

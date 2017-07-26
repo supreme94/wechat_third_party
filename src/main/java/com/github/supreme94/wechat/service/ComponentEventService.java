@@ -38,7 +38,7 @@ public class ComponentEventService {
 
 	private static final String UPDATEAUTHORIZED = "updateauthorized";
 	
-	private static final String GET_AUTHORIZER_INFO_URL = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_info?component_access_token={1}";
+	private static final String GET_AUTHORIZER_INFO_URL = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_info";
 	
 	@Autowired
 	@Qualifier("customRedisTemplate")
@@ -48,13 +48,13 @@ public class ComponentEventService {
 	private WechatProperties wechatProperties;
 	
 	@Autowired
-	private WeChatService weChatService;
-	
-	@Autowired
 	private AuthorizerInfoRepository authorizerInfoRepository;
 	
 	@Autowired
 	private FuncInfoRepository funcInfoRepository;
+	
+	@Autowired
+	private HttpClient httpClient;
 
 	public void handle(WxTicketXmlMessage wxTicketXmlMessage) {
 		switch (wxTicketXmlMessage.getInfoType()) {
@@ -81,8 +81,7 @@ public class ComponentEventService {
 		Map<String, String> params = new HashMap<>();
 		params.put("component_appid", wechatProperties.getAppId());
 		params.put("authorizer_appid", wxTicketXmlMessage.getAuthorizerAppid());
-		String cpmponent_access_token = this.weChatService.getComponentAccessToken();
-		String result = HttpClient.postJsonRequest(JsonUtil.objectToString(params), GET_AUTHORIZER_INFO_URL,cpmponent_access_token).getBody();
+		String result = httpClient.postForComponent(JsonUtil.objectToString(params), GET_AUTHORIZER_INFO_URL);
 		System.out.println(result);
 		JsonNode node = JsonUtil.stringToNode(result);
 		AuthorizerInfo authorizationInfo = authorizerInfoRepository.findOneByauthorizerAppid(wxTicketXmlMessage.getAuthorizerAppid());
@@ -110,8 +109,7 @@ public class ComponentEventService {
 		Map<String, String> params = new HashMap<>();
 		params.put("component_appid", wechatProperties.getAppId());
 		params.put("authorizer_appid", wxTicketXmlMessage.getAuthorizerAppid());
-		String cpmponent_access_token = this.weChatService.getComponentAccessToken();
-		String result = HttpClient.postJsonRequest(JsonUtil.objectToString(params), GET_AUTHORIZER_INFO_URL,cpmponent_access_token).getBody();
+		String result = httpClient.postForComponent(JsonUtil.objectToString(params), GET_AUTHORIZER_INFO_URL);
 		System.out.println(result);
 		JsonNode node = JsonUtil.stringToNode(result);
 		if(!node.hasNonNull("errcode")) {

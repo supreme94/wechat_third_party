@@ -18,16 +18,16 @@ import com.github.supreme94.wechat.util.JsonUtil;
 @Service
 public class WeChatService {
 
-	public static final String AUTHORIZER_ACCESS_TOKEN_PREFIX = "authorizer_access_token";
-	public static final String AUTHORIZER_REFRESH_TOKEN_PREFIX = "authorizer_refresh_token";
+	public static final String AUTHORIZER_ACCESS_TOKEN_PREFIX = "authorizer_access_token:";
+	public static final String AUTHORIZER_REFRESH_TOKEN_PREFIX = "authorizer_refresh_token:";
 
 	private static final String GET_COMPONENT_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/component/api_component_token";
 
-	private static final String GET_PRE_AUTH_CODE_URL = "https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token={1}";
+	private static final String GET_PRE_AUTH_CODE_URL = "https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode";
 
-	private static final String GET_AUTHORIZER_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/component/api_query_auth?component_access_token={1}";
+	private static final String GET_AUTHORIZER_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/component/api_query_auth";
 
-	private static final String REFRESH_AUTHORIZER_TOKEN_URL = "https:// api.weixin.qq.com /cgi-bin/component/api_authorizer_token?component_access_token={1}";
+	private static final String REFRESH_AUTHORIZER_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/component/api_authorizer_token";
 
 	@Autowired
 	private WechatProperties wechatProperties;
@@ -35,7 +35,10 @@ public class WeChatService {
 	@Autowired
 	@Qualifier("customRedisTemplate")
 	private RedisTemplate<String, String>  redisTemplate;
-
+	
+	@Autowired
+	private HttpClient httpClient;
+	
 	/**
 	 * 获取第三方平台component_access_token
 	 * @return
@@ -70,9 +73,9 @@ public class WeChatService {
 		params.put("component_appid", wechatProperties.getAppId());
 		params.put("component_appsecret", wechatProperties.getSecret());
 		params.put("component_verify_ticket", redisTemplate.opsForValue().get("component_verify_ticket"));
-		String body = HttpClient.postJsonRequest(JsonUtil.objectToString(params), GET_COMPONENT_TOKEN_URL).getBody();
+		String body = httpClient.post(JsonUtil.objectToString(params), GET_COMPONENT_TOKEN_URL);
 		WxComponentAccessToken wxComponentAccessToken = JsonUtil.stringToObject(body, WxComponentAccessToken.class);
-		redisTemplate.opsForValue().set("component_access_token", wxComponentAccessToken.getComponentAccessToken(),7140,TimeUnit.SECONDS);
+		redisTemplate.opsForValue().set("component_access_token", wxComponentAccessToken.getComponentAccessToken(),wxComponentAccessToken.getExpiresIn(),TimeUnit.SECONDS);
 		return wxComponentAccessToken.getComponentAccessToken();
 	}
 
@@ -83,8 +86,7 @@ public class WeChatService {
 	public String getpreAuthCode() {
 		Map<String, String> params = new HashMap<>();
 		params.put("component_appid", wechatProperties.getAppId());
-		String cpmponent_access_token = this.getComponentAccessToken();
-		String result = HttpClient.postJsonRequest(JsonUtil.objectToString(params), GET_PRE_AUTH_CODE_URL,cpmponent_access_token).getBody();
+		String result = httpClient.postForComponent(JsonUtil.objectToString(params), GET_PRE_AUTH_CODE_URL);
 		JsonNode node = JsonUtil.stringToNode(result);
 		redisTemplate.opsForValue().set("pre_auth_code", node.get("pre_auth_code").asText(), node.get("expires_in").asInt(),TimeUnit.SECONDS);
 		return node.get("pre_auth_code").asText();
@@ -99,8 +101,7 @@ public class WeChatService {
 		Map<String, String> params = new HashMap<>();
 		params.put("component_appid", wechatProperties.getAppId());
 		params.put("authorization_code", authorization_code);
-		String cpmponent_access_token = this.getComponentAccessToken();
-		String result = HttpClient.postJsonRequest(JsonUtil.objectToString(params), GET_AUTHORIZER_TOKEN_URL,cpmponent_access_token).getBody();
+		String result = httpClient.postForComponent(JsonUtil.objectToString(params), GET_AUTHORIZER_TOKEN_URL);
 		JsonNode node = JsonUtil.stringToNode(result);
 		JsonNode authorization_info = node.path("authorization_info");
 		String authorizer_access_token = authorization_info.path("authorizer_access_token").textValue();
@@ -146,12 +147,12 @@ public class WeChatService {
 	 * @return
 	 */
 	public String refreshAuthorizerAccessToken(String authorizer_appid) {
-		String cpmponent_access_token = this.getComponentAccessToken();
 		Map<String, String> params = new HashMap<>();
 		params.put("component_appid", wechatProperties.getAppId());
 		params.put("authorizer_appid", authorizer_appid);
 		params.put("authorizer_refresh_token", redisTemplate.opsForValue().get(AUTHORIZER_REFRESH_TOKEN_PREFIX + authorizer_appid));
-		String result = HttpClient.postJsonRequest(JsonUtil.objectToString(params), REFRESH_AUTHORIZER_TOKEN_URL,cpmponent_access_token).getBody();
+		String result = httpClient.postForComponent(JsonUtil.objectToString(params), REFRESH_AUTHORIZER_TOKEN_URL);
+		System.out.println(result);
 		JsonNode node = JsonUtil.stringToNode(result);
 		String authorizer_access_token = node.path("authorizer_access_token").textValue();
 		redisTemplate.opsForValue().set(AUTHORIZER_ACCESS_TOKEN_PREFIX + authorizer_appid,authorizer_access_token,node.path("expires_in").longValue(),TimeUnit.SECONDS);
